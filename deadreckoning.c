@@ -13,15 +13,15 @@
 //Global variables - you will need to change some of these
 //Robot's positions
 float robot_X = 0.0, robot_Y = 0.0, robot_TH = 0.0;
-float wheelradius = 1.1;
-float robotWidth = 4.76;
+float wheelradius = 1.10236;
+float robotWidth = 4.76378;
 
 int velocityUpdateInterval = 5;
 int PIDUpdateInterval = 2;
 
 //Change these during demo
-int inputStraight[2] = {24, 36}; // in mm
-int inputTurn[2] = {90, -180}; // in degrees, negative means clockwise rotation
+int inputStraight[2] = {24*sqrt(2), 36}; // in inches
+int inputTurn[2] = {45, -135}; // in degrees, negative means clockwise rotation
 int motorPower = 40;
 
 /*****************************************
@@ -139,8 +139,8 @@ task main()
 			int sgn = goalTurn > 0 ? 1 : -1;
 			motor[motorA] = motorPower / 3 * (-sgn);
 			motor[motorB] = motorPower / 3 * sgn;
-			angleTurned = nMotorEncoder[motorB] * wheelradius / robotWidth * 2;
-			nxtDisplayTextLine(3, "sgn: %d", sgn);
+			angleTurned = (nMotorEncoder[motorB]-nMotorEncoder[motorA])/2 * wheelradius / robotWidth * 2;
+			//nxtDisplayTextLine(3, "sgn: %d", sgn);
 		}
 		robot_TH = robot_TH + angleTurned;
 		ref_TH = ref_TH + goalTurn;
@@ -152,7 +152,7 @@ task main()
 		nMotorEncoder[motorA] = 0;
 		float prevl = nMotorEncoder[motorA] * wheelradius * PI / 180;
 		float prevr = nMotorEncoder[motorB] * wheelradius * PI / 180;
-		float kp = 0.08;
+		float kp = 0.1;
 		clearTimer(T1);
 		float prevt = (float) time1[T1] / 1000;
 		start_X = robot_X;
@@ -179,7 +179,7 @@ task main()
 			motor[motorB] = motorPower;
 			distTravelled = sqrt(pow(robot_X-start_X, 2) + pow(robot_Y-start_Y, 2));
 			nxtDisplayTextLine(3, "v: %f", v);
-			wait1Msec(100);
+			wait1Msec(50);
 		}
 
 		motor[motorA] = 0;
