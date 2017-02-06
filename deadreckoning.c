@@ -20,8 +20,8 @@ int velocityUpdateInterval = 5;
 int PIDUpdateInterval = 2;
 
 //Change these during demo
-int inputStraight[2] = {36, 36}; // in mm
-int inputTurn[2] = {0, 0}; // in degrees, negative means clockwise rotation
+int inputStraight[2] = {24, 36}; // in mm
+int inputTurn[2] = {90, -180}; // in degrees, negative means clockwise rotation
 int motorPower = 40;
 
 /*****************************************
@@ -42,7 +42,6 @@ task dead_reckoning()
 		nxtDisplayTextLine(0, "X: %f", robot_X);
 		nxtDisplayTextLine(1, "Y: %f", robot_Y);
 		nxtDisplayTextLine(2, "th: %f", robot_TH);
-
 		wait1Msec(velocityUpdateInterval);
 	}
 }
@@ -125,7 +124,6 @@ task main()
 	draw_grid();
 	startTask(dead_reckoning);
 	clearTimer(T1);
-	float prevt = (float)time1[T1]/1000;
 	for(int i = 0; i < 2; i++)
 	{
 		float distTravelled = 0;
@@ -138,64 +136,49 @@ task main()
 		//float prevt = 0.0, prevl = 0.0, prevr = 0.0;
 		//clearTimer(T1);
 		while (!equal(angleTurned, goalTurn, 1)) {
-			//float t = (float)time1[T1] / 1000;
-			//float dt = t - prevt;
-			//if(dt == 0) continue;
-			//prevt = t;
-			//float l = nMotorEncoder[motorA];
-			//float r = nMotorEncoder[motorB];
-			//float vl = (l-prevl) / dt;
-			//float vr = (r-prevr) / dt;
-			//float w = (vr - vl) / robotWidth;
-			//angleTurned = angleTurned + w * dt / PI * 180;
 			int sgn = goalTurn > 0 ? 1 : -1;
 			motor[motorA] = motorPower / 3 * (-sgn);
 			motor[motorB] = motorPower / 3 * sgn;
-			float angleL = (float)nMotorEncoder[motorA] * wheelradius / robotWidth * 2;
-			float angleR = (float)nMotorEncoder[motorB] * wheelradius / robotWidth * 2;
-			angleTurned = (angleR - angleL) / 2.0;
-			nxtDisplayTextLine(3, "ang: %d", angleTurned);
+			angleTurned = nMotorEncoder[motorB] * wheelradius / robotWidth * 2;
+			nxtDisplayTextLine(3, "sgn: %d", sgn);
 		}
 		robot_TH = robot_TH + angleTurned;
 		ref_TH = ref_TH + goalTurn;
 		motor[motorA] = 0;
 		motor[motorB] = 0;
-		wait1Msec(500);
+		wait1Msec(1000);
 		//moving in a straight line
 		nMotorEncoder[motorB] = 0;
 		nMotorEncoder[motorA] = 0;
+		float prevl = nMotorEncoder[motorA] * wheelradius * PI / 180;
+		float prevr = nMotorEncoder[motorB] * wheelradius * PI / 180;
+		float kp = 0.08;
+		clearTimer(T1);
+		float prevt = (float) time1[T1] / 1000;
 		start_X = robot_X;
 		start_Y = robot_Y;
-		float kp = 0.2;
-		float l = nMotorEncoder[motorA] * wheelradius * PI / 180;
-		float r = nMotorEncoder[motorB] * wheelradius * PI / 180;
-		float prevt = 0.0, prevl = l, prevr = r;
-		motor[motorA] = motorPower;
-		motor[motorB] = motorPower;
-		clearTimer(T1);
 		while (!equal(distTravelled, goalStraight, 1)) {
-			l = (float)nMotorEncoder[motorA] * wheelradius * PI / 180;
-			r = (float)nMotorEncoder[motorB] * wheelradius * PI / 180;
-			float t = (float)time1[T1] / 1000;
+			float t = (float) time1[T1] / 1000;
 			float dt = t - prevt;
 			if(dt == 0) continue;
 			prevt = t;
-			float vl = (l-prevl) / dt;
-			float vr = (r-prevr) / dt;
+			float l = (float)nMotorEncoder[motorA] * wheelradius * PI / 180;
+			float r = (float)nMotorEncoder[motorB] * wheelradius * PI / 180;
+			float vl = (l - prevl) / dt;
+			float vr = (r - prevr) / dt;
 			float v = (vl + vr) / 2;
-			float w = (vr - vl) / robotWidth;
-			robot_TH = robot_TH + w * dt / 2 * 180 / PI;
-			robot_X = robot_X + v * cosDegrees(robot_TH) * dt;
-			robot_Y = robot_Y + v * sinDegrees(robot_TH) * dt;
-			robot_TH = robot_TH + w * dt / 2 * 180 / PI;
+			float w = (vr - vl) / 2 * 180 / PI;
 			prevl = l;
 			prevr = r;
-			float ang = atan2(robot_Y, robot_X);
-			float error = (ang + robot_TH) / 2 - ref_TH;
+			robot_TH = robot_TH + w * dt / 2;
+			robot_X = robot_X + cosDegrees(robot_TH) * v * dt;
+			robot_Y = robot_Y + sinDegrees(robot_TH) * v * dt;
+			robot_TH = robot_TH + w * dt / 2;
+			float error = robot_TH - ref_TH;
 			motor[motorA] = motorPower * (1 + kp * error);
 			motor[motorB] = motorPower;
-			distTravelled = sqrt(pow(robot_X - start_X, 2) + pow(robot_Y - start_Y, 2));
-			nxtDisplayTextLine(3, "atan2: %f", atan2(robot_Y, robot_X) * 180 / PI);
+			distTravelled = sqrt(pow(robot_X-start_X, 2) + pow(robot_Y-start_Y, 2));
+			nxtDisplayTextLine(3, "v: %f", v);
 			wait1Msec(100);
 		}
 
