@@ -9,7 +9,6 @@ float bcali = 75;
 float kp = 17/2;
 float kd = 0.3/2;
 float ki = 0.3/1.5;
-float threshold = 10;
 task main()
 {
 	float preverror = 0;
@@ -17,24 +16,16 @@ task main()
 	while(true) {
 		float f = (float)SensorValue(front);
 		float b = (float)SensorValue(back);
-		//writeDebugStreamLine("%d, %d", f, b);
 
 		float error = f > fcali ? f-fcali : bcali - b;
 		float derror = error - preverror;
 		ierror = ierror + error;
 		preverror = error;
 
-		int sign1 = error > 0 ? 1 : -1;
-		int sign2 = derror > 0 ? 1 : -1;
-		int sign3 = ierror > 0 ? 1 : -1;
-		//float pid = sign1 * kp * error * error + sign2 * kd * derror * derror + sign3 * ki * ierror * ierror;
 		float pid = kp * error + kd * derror + ki * ierror;
 		float power = pid;
 		int sign = pid > 0 ? 1 : -1;
-		power = abs(power) > 100 ? 80 * sign : power;
-		writeDebugStreamLine("%d %d %d %d\n", error, derror, ierror, pid);
-		//nxtDisplayTextLine(0,"%d\n", nImmediateBatteryLevel);
-		//writeDebugStreamLine("%d\n", power);
+		power = abs(power) > 100 ? 80 * sign : power; //prevent overly large power input
 		motor[leftMotor] = (int)power;
 		motor[rightMotor] = (int)power;
 		wait1Msec(5);
