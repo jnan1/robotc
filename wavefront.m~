@@ -28,14 +28,17 @@ while (image(startx, starty) == 0)
         end
     end
 end
+image = image;
 figure
 imshow(image)
 
-arr = zeros(1000,2);
-arr(1,:) = [startx, starty];
-current = arr(1,:);
-while ~(current(1,1) == endx && current(1,2) == endy)
-    x = current(1,1);
-    y = current(1,2);
+
+gua gua gua
+
+
+guaguagua
+
+arr = zeros()
+while arr(end) ~= 2
     
 end
