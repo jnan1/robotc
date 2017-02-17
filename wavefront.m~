@@ -28,17 +28,28 @@ while (image(startx, starty) == 0)
         end
     end
 end
-image = image;
 figure
 imshow(image)
 
-
-gua gua gua
-
-
-guaguagua
-
-arr = zeros()
-while arr(end) ~= 2
-    
+arr = zeros(1000,2);
+arr(1,:) = [startx, starty];
+counter = 2;
+current = arr(1,:);
+defaultdir = 1;
+while ~(current(1,1) == endx && current(1,2) == endy)
+    x = current(1,1);
+    y = current(1,2);
+    if(x < m && image(x+1, y) ~= 1 && image(x+1,y) < image(x,y))
+        arr(counter, :) = [x+1,y];
+    elseif(x > 1 && image(x-1, y) ~= 1 && image(x-1,y) < image(x,y))
+        arr(counter,:) = [x-1,y];
+    elseif(y < n && image(x, y+1) ~= 1 && image(x,y+1) < image(x,y+1))
+        arr(counter,:) = [x,y+1];
+    else
+        arr(counter,:) = [x,y-1];
+    end
+    counter = counter + 1;
 end
+rgb = double(cat(3, BinImg, BinImg, BinImg))
+(arr(1:counter,:))
+

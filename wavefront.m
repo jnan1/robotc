@@ -1,12 +1,12 @@
-image = im2bw(im, 0);
+image = im;
 image = im2double(image);
 factor = 13;
 m = 630;
 n = 1260;
-startx = 1;
-starty = 1;
-endx = 620;
-endy = 620;
+startx = 57;
+starty = 65;
+endx = 77;
+endy = 1177;
 
 counter = 2;
 image(endx, endy) = 2;
@@ -29,13 +29,39 @@ while (image(startx, starty) == 0)
     end
 end
 figure
-imshow(image)
+imshow(image ./ counter)
 
 arr = zeros(1000,2);
 arr(1,:) = [startx, starty];
+counter = 2;
 current = arr(1,:);
+defaultdir = 1;
+path = cat(3,im.*255,im.*255,im.*255);
 while ~(current(1,1) == endx && current(1,2) == endy)
     x = current(1,1);
     y = current(1,2);
-    
+    if(x < m && image(x+1, y) ~= 1 && image(x+1,y) < image(x,y))
+        arr(counter, :) = [x+1,y];
+        path(x+1, y, 1) = 255;
+    elseif(x > 1 && image(x-1, y) ~= 1 && image(x-1,y) < image(x,y))
+        arr(counter,:) = [x-1,y];
+        path(x-1, y, 1) = 255;
+    elseif(y < n && image(x, y+1) ~= 1 && image(x,y+1) < image(x,y))
+        arr(counter,:) = [x,y+1];
+        path(x, y+1, 1) = 255;
+    elseif(y > 1 && image(x, y-1) ~= 1 && image(x,y-1) < image(x,y))
+        arr(counter,:) = [x,y-1];
+        path(x, y-1, 1) = 255;
+    else
+        disp('backtrack?');
+    end
+    current = arr(counter,:);
+    counter = counter + 1;
 end
+
+% size(path)
+% % max(arr(:,2))
+% path(arr(1:counter-1,:),1) = 255;
+figure
+imshow(path)
+

@@ -4,7 +4,7 @@ img = img(4:size(img,1)-1, :);
 img(:,2:3) = 0;
 img(size(img,1),:) = 1;
 img(1,:) = 1;
-img(:,size(img,2)) = 1;
+img
 figure
 imshow(img)
 robotwidth = 6;
