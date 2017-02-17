@@ -52,7 +52,6 @@ path = cat(3,im.*255,im.*255,im.*255);
 output = zeros(1,1000);
 straightlen = 0;
 commandcounter = 1;
-commandcate = zeros(1,1000);
 while ~(current(1,1) == endx && current(1,2) == endy)
     x = current(1,1);
     y = current(1,2);
@@ -86,9 +85,8 @@ while ~(current(1,1) == endx && current(1,2) == endy)
     for i = 1 : 4
         if(b(1,i))
             output(:,commandcounter) = straightlen;
-            commandcate(:,commandcounter) = 1;
-            staightlen = 0;
-            output(:,commandcounter+1) = angles(1,degaultdir) - angles(1,i);
+            straightlen = 0;
+            output(:,commandcounter+1) = angles(1,defaultdir) - angles(1,i);
             commandcounter = commandcounter + 2;
             arr(counter,:) = pts(i,:);
             current = arr(counter,:);
@@ -99,9 +97,14 @@ while ~(current(1,1) == endx && current(1,2) == endy)
         end
     end
 end
+output(:,commandcounter) = straightlen;
+fileID = fopen('output.txt','w');
+output = output(:,1:commandcounter);
+size(output,2)
+for i = 1 : size(output,2)
+    fprintf(fileID, '%.2f ', output(1,i));
+end
 
-output = output(:,1:commandcounter-1);
-commandcate = commandcate(:,1:commandcounter-1);
 figure
 imshow(path)
 
