@@ -7,7 +7,7 @@ img(1,:) = 1;
 img(:,size(img,2)) = 1;
 figure
 imshow(img)
-robotwidth = 6;
+robotwidth = 7;
 robotradius = robotwidth / 2;
 size(img)
 factor = size(img,1)/(4*12);

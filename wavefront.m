@@ -1,12 +1,29 @@
+close all;
+clear;
+load('im6.8.mat');
 image = im;
 image = im2double(image);
 factor = 13;
-m = 630;
-n = 1260;
-startx = 69;
-starty = 545;
-endx = 83;
-endy = 719;
+x1 = 6;
+y1 = 42;
+x2 = 90;
+y2 = 42;
+m = size(im,1);
+n = size(im,2);
+startx = (48-y1)*factor+1;
+starty = x1*factor+1;
+endx = (48-y2)*factor+1;
+endy = x2*factor+1;
+
+if(image(startx,starty) == 1)
+    disp('bad start pt');
+    pause();
+end
+
+if(image(endx,endy) == 1)
+    disp('bad end pt');
+    pause();
+end
 
 counter = 2;
 image(endx, endy) = 2;
@@ -42,7 +59,6 @@ while (image(startx, starty) == 0)
 end
 % figure
 % imshow(image ./ counter)
-
 arr = zeros(1000,2);
 arr(1,:) = [startx, starty];
 counter = 2;
@@ -52,14 +68,15 @@ path = cat(3,im.*255,im.*255,im.*255);
 output = zeros(1,1000);
 straightlen = 0;
 commandcounter = 1;
+pathlen = 0;
 while ~(current(1,1) == endx && current(1,2) == endy)
     x = current(1,1);
     y = current(1,2);
     b = zeros(1,4);
-    b(1,1) = x < m && image(x+1, y) ~= 1 && image(x+1,y) < image(x,y);
-    b(1,2) = x > 1 && image(x-1, y) ~= 1 && image(x-1,y) < image(x,y);
-    b(1,3) = y < n && image(x, y+1) ~= 1 && image(x,y+1) < image(x,y);
-    b(1,4) = y > 1 && image(x, y-1) ~= 1 && image(x,y-1) < image(x,y);
+    b(1,1) = x < m && image(x+1, y) ~= 1 && image(x+1,y) ~= 0 && image(x+1,y) < image(x,y);
+    b(1,2) = x > 1 && image(x-1, y) ~= 1 && image(x-1,y) ~= 0 && image(x-1,y) < image(x,y);
+    b(1,3) = y < n && image(x, y+1) ~= 1 && image(x,y+1) ~= 0 && image(x,y+1) < image(x,y);
+    b(1,4) = y > 1 && image(x, y-1) ~= 1 && image(x,y-1) ~= 0 &&image(x,y-1) < image(x,y);
 %     b(1,5) = x > 1 && y > 1 && image(x-1, y-1) ~= 1 && image(x-1,y-1) < image(x,y);
 %     b(1,6) = x > 1 && y < n && image(x-1, y+1) ~= 1 && image(x-1,y+1) < image(x,y);
 %     b(1,7) = x < m && y > 1 && image(x+1, y-1) ~= 1 && image(x+1,y-1) < image(x,y);
@@ -85,8 +102,16 @@ while ~(current(1,1) == endx && current(1,2) == endy)
     for i = 1 : 4
         if(b(1,i))
             output(:,commandcounter) = straightlen;
-            straightlen = 0;
-            output(:,commandcounter+1) = angles(1,defaultdir) - angles(1,i);
+            pathlen = pathlen + straightlen;
+            straightlen = 1/factor;
+            th = - angles(1,defaultdir) + angles(1,i);
+            if(th < -180)
+                th = th + 360;
+            end
+            if(th > 180)
+                th = th - 360;
+            end
+            output(:,commandcounter+1) = th;
             commandcounter = commandcounter + 2;
             arr(counter,:) = pts(i,:);
             current = arr(counter,:);
@@ -98,13 +123,19 @@ while ~(current(1,1) == endx && current(1,2) == endy)
     end
 end
 output(:,commandcounter) = straightlen;
+pathlen = pathlen + straightlen;
 fileID = fopen('output.txt','w');
 output = output(:,1:commandcounter);
-size(output,2)
+fprintf(fileID, 'int num = %d;\n',size(output,2)+1);
+fprintf(fileID, 'int input[%d] = {',size(output,2)+1);
 for i = 1 : size(output,2)
-    fprintf(fileID, '%.2f ', output(1,i));
+    if i == size(output,2)
+        fprintf(fileID, '%.3f};', output(1,i));
+    else
+        fprintf(fileID, '%.3f,', output(1,i));
+    end
 end
-
+fprintf(fileID, '\npathlen: %.3f', pathlen);
 figure
 imshow(path)
 
